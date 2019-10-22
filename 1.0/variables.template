@@ -1,0 +1,11 @@
+{
+    "aws_access_key": "{{ .AWS_Access_Key }}",
+    "aws_region": "{{ .AWS_Region }}",
+    "aws_secret_key": "{{ .AWS_Secret_Key }}",
+    "build_tag": "{{ .Build_Tag }}",
+    "dh_password": "{{ .Docker_Hub_Pass }}",
+    "dh_username": "{{ .Docker_Hub_User }}",
+    "gcp_zone": "{{ .GCP_Zone }}",
+    "project_id": "{{ .GCP_Project_Id }}",
+    "script_path": "{{ .Script_Path }}"
+}

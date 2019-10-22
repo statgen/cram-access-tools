@@ -1,0 +1,78 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_region": "",
+        "aws_secret_key": "",
+        "build_tag": "",
+        "dh_password": "",
+        "dh_username": "",
+        "gcp_zone": "",
+        "project_id": "",
+        "script_path": ""
+    },
+    "sensitive-variables": ["aws_access_key", "aws_secret_key", "dh_username", "dh_password"],
+    "builders": [{
+        "type": "googlecompute",
+        "project_id": "{{user `project_id`}}",
+        "zone": "{{user `gcp_zone`}}",
+        "image_name": "statgen-tools-{{user `build_tag`}}-{{isotime \"20060102\"}}",
+        "image_description": "A set of common tools used at University of Michigan Center for Statistical Genetics. Built on {{isotime \"2006-01-02\"}}.",
+        "image_family": "statgen-tools",
+        "machine_type": "n1-standard-4",
+        "source_image_family": "ubuntu-18.04-lts",
+        "disk_size": "10",
+        "disk_type": "pd-ssd",
+        "ssh_username": "root"
+    },{
+        "type": "docker",
+        "image": "ubuntu:18.04",
+        "commit": "true",
+        "changes": [
+            "USER docker"
+        ]
+    },{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "{{user `aws_region`}}",
+        "ami_name": "statgen-tools-{{user `build_tag`}}-{{isotime \"20060102\"}}",
+        "ami_description": "A set of common tools used at University of Michigan Center for Statistical Genetics. Built on {{isotime \"2006-01-02\"}}.",
+        "encrypt_boot": true,
+        "source_ami_filter": {
+            "filters": {
+                "virtualization-type": "hvm",
+                "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*",
+                "root-device-type": "ebs"
+            },
+            "owners": ["099720109477"],
+            "most_recent": true
+        },
+        "instance_type": "t2.xlarge",
+        "ssh_username": "ubuntu"
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "script": "{{user `script_path`}}",
+        "override": {
+            "amazon-ebs": {
+                "execute_command": "sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
+            }
+        }
+    },{
+        "type": "shell",
+        "only": ["amazon-ebs", "googlecompute"],
+        "inline": [
+            "rm /home/*/.ssh/authorized_keys"
+        ]
+    }],
+    "post-processors": [
+        [
+            {
+                "type": "docker-tag",
+                "only": ["docker"],
+                "repository": "statgen/cram-access-tools",
+                "tag": "{{user `build_tag`}}"
+            }
+        ]
+    ]
+}
