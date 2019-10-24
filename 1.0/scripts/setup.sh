@@ -39,12 +39,14 @@ setup_bwakit() {
     curl -L -o /tmp/bwakit-0.7.15_x64-linux.tar.bz2 https://sourceforge.net/projects/bio-bwa/files/bwakit/bwakit-0.7.15_x64-linux.tar.bz2
     tar -xvjf /tmp/bwakit-0.7.15_x64-linux.tar.bz2 -C /tmp
     curl -L -o /tmp/bwa.kit/run-gen-ref https://raw.githubusercontent.com/lh3/bwa/master/bwakit/run-gen-ref
-    mkdir -p /reference /root/.cache/hts-ref
+    mkdir -p /reference/.cache/hts-ref
     cd /reference/ || exit
     /tmp/bwa.kit/./run-gen-ref hs38DH
-    /tmp/samtools-$SAMTOOLS_RELEASE/misc/./seq_cache_populate.pl -root /root/.cache/hts-ref -subdirs 2 /reference/hs38DH.fa > seq.cache.idx
+    /tmp/samtools-$SAMTOOLS_RELEASE/misc/./seq_cache_populate.pl -root /reference/.cache/hts-ref -subdirs 2 /reference/hs38DH.fa > seq.cache.idx
     bgzip hs38DH.fa
     samtools faidx hs38DH.fa.gz
+
+    #bash -c 'echo "export REF_PATH=/reference/.cache/hts-ref/%2z/%2s/%s" >> /etc/profile.d/02-ref.sh'
 }
 
 install_fusera() {
@@ -57,6 +59,7 @@ install_fusera() {
 
 create_user() {
     useradd -d /home/docker -m -s /bin/bash docker
+    passwd -d docker
 }
 
 setup() {
@@ -80,10 +83,10 @@ setup() {
 
 cleanup() {
     # Remove unused software packages
-    for package in "${TEMP_DEPENDENCIES[@]}"
-    do
-        apt-get purge -y "$package"
-    done
+    # for package in "${TEMP_DEPENDENCIES[@]}"
+    # do
+    #     apt-get purge -y "$package"
+    # done
 
     apt-get autoremove -y
 

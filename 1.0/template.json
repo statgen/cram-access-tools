@@ -28,7 +28,7 @@
         "image": "ubuntu:18.04",
         "commit": "true",
         "changes": [
-            "USER docker"
+            "ENV REF_PATH /reference/.cache/hts-ref/%2z/%2s/%s"
         ]
     },{
         "type": "amazon-ebs",
